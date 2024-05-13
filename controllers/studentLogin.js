@@ -57,10 +57,11 @@ const login = async (req, res) => {
     if (!(await bcrypt.compare(password, user[0].password))) {
       throw new Error("Incorrect email or password");
     }
-    const token = await jwt.sign({ id: user.id }, process.env.SECRET, {
+    const id = user[0].id;
+    const token = await jwt.sign({ id }, process.env.SECRET, {
       expiresIn: "3d",
     });
-    res.status(200).json({ id, email, token });
+    res.status(200).json({ id: user[0].id, email, token });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
