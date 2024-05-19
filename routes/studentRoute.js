@@ -1,77 +1,25 @@
-/**
- * @swagger
- * /login:
- *   post:
- *     summary: Login endpoint
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Successful login
- *       400:
- *         description: Invalid request or credentials
- */
-
-/**
- * @swagger
- * /signup:
- *   post:
- *     summary: Signup endpoint
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: string
- *               name:
- *                 type: string
- *               email:
- *                 type: string
- *               level:
- *                 type: string
- *               faculty:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Successful signup
- *       400:
- *         description: Invalid request or user already exists
- */
-
 const express = require("express");
-const { login, signup } = require("../controllers/studentLogin");
-const studentAuth = require("../middleware/studentAuth");
 const {
   getCourses,
   registerCourse,
   dropCourse,
-} = require("../controllers/studentCourses");
+} = require("../controllers/student/studentCourses");
+const {
+  getAssginments,
+  submitAssignment,
+} = require("../controllers/student/studentAssignments");
+const { getWeeks, getWeek } = require("../controllers/student/studentWeeks");
 
 const router = express.Router();
 
-router.post("/login", login);
-router.post("/signup", signup);
+router.get("/courses", getCourses);
+router.post("/courses/:id", registerCourse);
+router.delete("/courses/:id", dropCourse);
 
-router.use(studentAuth);
+router.get("/assignments/:id", getAssginments);
+router.post("/assignments/:id", submitAssignment);
 
-const coursesRouter = express.Router();
-router.use("/courses", coursesRouter);
-coursesRouter.get("/", getCourses);
-coursesRouter.post("/:id", registerCourse);
-coursesRouter.delete("/:id", dropCourse);
+router.get("/weeks/:id", getWeeks);
+router.get("/weeks/:course_id/:week_id", getWeek);
 
 module.exports = router;

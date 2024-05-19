@@ -1,4 +1,4 @@
-const connection = require("../utils/db");
+const connection = require("../../utils/db");
 const getCourses = async (req, res) => {
   try {
     const userid = req.user;
