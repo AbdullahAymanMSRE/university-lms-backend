@@ -13,22 +13,66 @@ const connection = require("../../utils/db");
 const getCourses = async (req, res) => {
   try {
     const instructorId = req.user;
-    const query = `
-      SELECT t.course_id, GROUP_CONCAT(t.student_id) AS students_registered
-      FROM (
-        SELECT c.course_id, c.instructor_id, t.student_id
-        FROM teaches c
-        LEFT JOIN takes t ON c.course_id = t.course_id
-        WHERE c.instructor_id = ?
-      ) AS t
-      GROUP BY t.course_id;
+
+    // Fetch courses taught by the instructor
+    const query1 = `
+      SELECT course.*
+      FROM teaches 
+      LEFT JOIN course ON course.id = teaches.course_id
+      WHERE teaches.instructor_id = ?`;
+    const [courses] = await connection.query(query1, [instructorId]);
+
+    // Fetch students registered in each course taught by the instructor
+    const query2 = `
+      SELECT c.course_id, s.id AS student_id, s.name AS student_name, s.email AS student_email
+      FROM teaches c
+      LEFT JOIN takes t ON c.course_id = t.course_id
+      LEFT JOIN student s ON t.student_id = s.id
+      WHERE c.instructor_id = ?;
     `;
-    const [courses] = await connection.query(query, [instructorId]);
-    res.status(200).json(courses);
+    const [rows] = await connection.query(query2, [instructorId]);
+
+    // Process the data to format it as needed
+    const coursesWithStudents = courses.map((course) => {
+      const students = rows
+        .filter((row) => row.course_id === course.id)
+        .map((row) => ({
+          id: row.student_id,
+          name: row.student_name,
+          email: row.student_email,
+        }));
+
+      return {
+        ...course,
+        students_registered: students,
+      };
+    });
+
+    res.status(200).json(coursesWithStudents);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
+
+// const getCourses = async (req, res) => {
+//   try {
+//     const instructorId = req.user;
+//     const query = `
+//       SELECT t.course_id, GROUP_CONCAT(t.student_id) AS students_registered
+//       FROM (
+//         SELECT c.course_id, c.instructor_id, t.student_id
+//         FROM teaches c
+//         LEFT JOIN takes t ON c.course_id = t.course_id
+//         WHERE c.instructor_id = ?
+//       ) AS t
+//       GROUP BY t.course_id;
+//     `;
+//     const [courses] = await connection.query(query, [instructorId]);
+//     res.status(200).json(courses);
+//   } catch (error) {
+//     res.status(400).json({ error: error.message });
+//   }
+// };
 
 const getAllStudents = async (req, res) => {
   try {
@@ -67,11 +111,26 @@ const teachCourse = async (req, res) => {
       throw new Error("Already teaching for course");
     }
     console.log(instructorId, courseId);
-    query = `INSERT INTO teaches (instructor_id, course_id) VALUES (?, ?)`;
-    await connection.query(query, [instructorId, courseId]);
-    query = `SELECT * FROM course`;
-    const [courses] = await connection.query(query);
+    query = `INSERT INTO teaches (course_id, instructor_id) VALUES (?, ?)`;
+    await connection.query(query, [courseId, instructorId]);
+    // select all from teaches where instructor_id = ? and course_id = ?
+    query = `SELECT course.* FROM teaches 
+    left join course on course.id = teaches.course_id
+    WHERE teaches.instructor_id = ?`;
+    const [courses] = await connection.query(query, [instructorId]);
     res.status(200).json(courses);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const assignStudentToCourse = async (req, res) => {
+  try {
+    const { student_id, course_id } = req.body;
+    const instructorId = req.user;
+    const query = `INSERT INTO takes (student_id, course_id, instructor_id) VALUES (?, ?, ?)`;
+    await connection.query(query, [student_id, course_id, instructorId]);
+    res.status(200).json({ message: "Student assigned to course" });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -123,4 +182,5 @@ module.exports = {
   teachCourse,
   // leaveCourse,
   getAllStudents,
+  assignStudentToCourse,
 };

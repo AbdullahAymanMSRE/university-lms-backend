@@ -4,6 +4,7 @@ const {
   teachCourse,
   // leaveCourse,
   getAllStudents,
+  assignStudentToCourse,
 } = require("../controllers/instructor/instructorCourses");
 const {
   getAssginments,
@@ -25,6 +26,7 @@ router.get("/AllStudents", getAllStudents);
 
 router.get("/courses", getCourses);
 router.post("/courses", teachCourse);
+router.post("/courses/Assign_student", assignStudentToCourse);
 // router.delete("/courses/:id", leaveCourse);
 
 router.get("/assignments/:id", getAssginments);
