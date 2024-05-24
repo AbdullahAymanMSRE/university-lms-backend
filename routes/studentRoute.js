@@ -3,6 +3,7 @@ const {
   getCourses,
   registerCourse,
   dropCourse,
+  getCourse,
 } = require("../controllers/student/studentCourses");
 const {
   getAssginments,
@@ -15,6 +16,8 @@ const router = express.Router();
 router.get("/courses", getCourses);
 router.post("/courses/:id", registerCourse);
 router.delete("/courses/:id", dropCourse);
+
+router.get("/weeks/:id", getCourse);
 
 router.get("/assignments/:id", getAssginments);
 router.post("/assignments/:id", submitAssignment);
