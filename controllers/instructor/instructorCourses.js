@@ -101,7 +101,6 @@ const teachCourse = async (req, res) => {
     } else {
       courseId = existingCourse[0].id;
     }
-    console.log(courseId);
     query = `SELECT * FROM teaches WHERE instructor_id = ? AND course_id = ?`;
     const [existingTeaches] = await connection.query(query, [
       instructorId,
@@ -110,7 +109,6 @@ const teachCourse = async (req, res) => {
     if (existingTeaches.length > 0) {
       throw new Error("Already teaching for course");
     }
-    console.log(instructorId, courseId);
     query = `INSERT INTO teaches (course_id, instructor_id) VALUES (?, ?)`;
     await connection.query(query, [courseId, instructorId]);
     // select all from teaches where instructor_id = ? and course_id = ?

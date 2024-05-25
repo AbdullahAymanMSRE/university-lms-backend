@@ -8,7 +8,6 @@ const getWeeks = async (req, res) => {
             LEFT JOIN files f ON w.id = f.weeks_id
             ORDER BY w.id;
         `);
-    console.log(weeks);
     const weeksMap = {};
     weeks.forEach((row) => {
       if (!weeksMap[row.week_id]) {
@@ -29,7 +28,6 @@ const getWeeks = async (req, res) => {
     const result = Object.values(weeksMap);
     res.json(result);
   } catch (error) {
-    console.error("Error fetching weeks:", error);
     res.status(500).json({ error: "An error occurred while fetching weeks." });
   }
 };

@@ -12,10 +12,11 @@ const storage = multer.diskStorage({
     );
   },
 });
-const maxFileSize = 10 * 1024 * 1024;
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: maxFileSize },
-}).single("myFile");
 
-module.exports = upload;
+const maxFileSize = 10 * 1024 * 1024;
+var uploader = multer({
+  storage: multer.diskStorage({}),
+  limits: { fileSize: maxFileSize },
+});
+
+module.exports = uploader;

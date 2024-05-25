@@ -15,7 +15,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const test = require("./service/test");
+// const test = require("./service/test");
 // const options = {
 //   definition: {
 //     openapi: "3.0.0",
@@ -40,7 +40,6 @@ app.use(cors());
 app.use("/api", LoginRoute);
 app.use("/api/instructor", instructorAuth, instructorRoute);
 app.use("/api/student", studentAuth, studentRoute);
-app.use("/api/test", test);
 app.use((req, res) => {
   res.status(404).json({ message: "404 - Not Found" });
 });

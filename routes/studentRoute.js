@@ -20,8 +20,8 @@ router.delete("/courses/:id", dropCourse);
 
 router.get("/weeks/:id", getCourse);
 
-router.get("/assignments/:id", getAssginments);
-router.post("/assignments/:id", submitAssignment);
+router.get("/getAssignments/:courseId", getAssginments);
+router.post("/assignments/:courseId", submitAssignment);
 
 router.get("/announcements/:id", getAnnouncements);
 
