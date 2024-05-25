@@ -7,7 +7,12 @@ const {
 const getAssginments = async (req, res) => {
   try {
     const { courseId } = req.params;
-    // find instructor_id from takes table where course_id = courseId
+    const studentId = req.user;
+    const query5 = `SELECT * FROM takes WHERE student_id = ?`;
+    const [result5] = await connection.query(query5, [studentId]);
+    if (result5.length === 0) {
+      throw new Error("Not registered for course");
+    }
     const query4 = `SELECT instructor_id FROM takes WHERE course_id = ?`;
     const [result4] = await connection.query(query4, [courseId]);
     const instructor_id = result4[0].instructor_id;
@@ -30,6 +35,69 @@ const getAssginments = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+const getAllAssignments = async (req, res) => {
+  try {
+    console.log("***");
+    const studentId = req.user;
+
+    // Fetch all courses for the student
+    const courseQuery = `
+      SELECT t.*, c.*, i.name as instructor_name 
+      FROM takes t 
+      LEFT JOIN course c ON c.id = t.course_id 
+      LEFT JOIN instructor i ON t.instructor_id = i.id 
+      WHERE t.student_id = ?`;
+    const [courses] = await connection.query(courseQuery, [studentId]);
+
+    // Initialize an array to hold the courses with their assignments
+    const coursesWithAssignments = [];
+
+    // Loop through each course to fetch its assignments
+    for (const course of courses) {
+      const courseId = course.course_id;
+      const instructorId = course.instructor_id;
+
+      // Fetch all assignments for the course
+      const assignmentQuery = `
+        SELECT a.*, af.path as file_path
+        FROM assignments a
+        LEFT JOIN assignment_files af ON a.id = af.assignment_id
+        WHERE a.course_id = ? AND a.instructor_id = ?`;
+      const [assignments] = await connection.query(assignmentQuery, [
+        courseId,
+        instructorId,
+      ]);
+
+      // Group assignments by week
+      const assignmentsByWeek = assignments.reduce((acc, assignment) => {
+        const week = assignment.week || "No Week Specified";
+        if (!acc[week]) {
+          acc[week] = [];
+        }
+        acc[week].push({
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description,
+          due_date: assignment.due_date,
+          file_path: assignment.file_path,
+        });
+        return acc;
+      }, {});
+
+      // Add the course and its assignments to the result array
+      coursesWithAssignments.push({
+        ...course,
+        weeks: assignmentsByWeek,
+      });
+    }
+
+    res.status(200).json({ success: true, data: coursesWithAssignments });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const submitAssignment = async (req, res) => {};
 
-module.exports = { getAssginments, submitAssignment };
+module.exports = { getAssginments, submitAssignment, getAllAssignments };

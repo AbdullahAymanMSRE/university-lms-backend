@@ -35,7 +35,7 @@ const getCourses = async (req, res) => {
     // Process the data to format it as needed
     const coursesWithStudents = courses.map((course) => {
       const students = rows
-        .filter((row) => row.course_id === course.id)
+        .filter((row) => row.course_id === course.id && row.student_id !== null)
         .map((row) => ({
           id: row.student_id,
           name: row.student_name,
@@ -126,6 +126,12 @@ const assignStudentToCourse = async (req, res) => {
   try {
     const { student_id, course_id } = req.body;
     const instructorId = req.user;
+    // check if the instructor is teaching the course
+    let query1 = `SELECT * FROM teaches WHERE instructor_id = ? AND course_id = ?`;
+    const [teaches] = await connection.query(query1, [instructorId, course_id]);
+    if (teaches.length === 0) {
+      throw new Error("Instructor is not teaching the course");
+    }
     const query = `INSERT INTO takes (student_id, course_id, instructor_id) VALUES (?, ?, ?)`;
     await connection.query(query, [student_id, course_id, instructorId]);
     res.status(200).json({ message: "Student assigned to course" });

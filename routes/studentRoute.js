@@ -8,6 +8,7 @@ const {
 } = require("../controllers/student/studentCourses");
 const {
   getAssginments,
+  getAllAssignments,
   submitAssignment,
 } = require("../controllers/student/studentAssignments");
 const { getWeeks, getWeek } = require("../controllers/student/studentWeeks");
@@ -21,6 +22,7 @@ router.delete("/courses/:id", dropCourse);
 router.get("/weeks/:id", getCourse);
 
 router.get("/getAssignments/:courseId", getAssginments);
+router.get("/allAssignments/", getAllAssignments);
 router.post("/assignments/:courseId", submitAssignment);
 
 router.get("/announcements/:id", getAnnouncements);

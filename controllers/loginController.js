@@ -43,7 +43,9 @@ const signup = async (req, res) => {
       const token = await jwt.sign({ id }, process.env.SECRET, {
         expiresIn: "3d",
       });
-      res.status(200).json({ id: id[0].id, name, email, faculty, token });
+      res
+        .status(200)
+        .json({ role: "student", id: id[0].id, name, email, faculty, token });
     } else if (role == "instructor") {
       if (
         instructorEmailExist[0].length > 0 ||
@@ -64,7 +66,14 @@ const signup = async (req, res) => {
       const token = await jwt.sign({ id }, process.env.SECRET, {
         expiresIn: "3d",
       });
-      res.status(200).json({ id: id[0].id, name, email, faculty, token });
+      res.status(200).json({
+        role: "instructor",
+        id: id[0].id,
+        name,
+        email,
+        faculty,
+        token,
+      });
     }
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -74,38 +83,51 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email && !password) {
+    if (!email || !password) {
       throw new Error("All fields are required");
     }
-    const [existStudent] = await connection.query(
-      "SELECT * FROM student WHERE email = ?",
-      [email]
-    );
-    const [existInstructor] = await connection.query(
-      "SELECT * FROM instructor WHERE email = ?",
-      [email]
-    );
-    if (!existStudent && !existInstructor) {
+
+    // Query for student and instructor in parallel
+    const [studentResults, instructorResults] = await Promise.all([
+      connection.query("SELECT * FROM student WHERE email = ?", [email]),
+      connection.query("SELECT * FROM instructor WHERE email = ?", [email]),
+    ]);
+
+    const existStudent = studentResults[0];
+    const existInstructor = instructorResults[0];
+
+    if (!existStudent.length && !existInstructor.length) {
       throw new Error("Incorrect email");
     }
-    if (existStudent) {
-      if (!(await bcrypt.compare(password, existStudent[0].password))) {
+
+    if (existStudent.length) {
+      const student = existStudent[0];
+      const isMatch = await bcrypt.compare(password, student.password);
+      if (!isMatch) {
         throw new Error("Incorrect password");
       }
-      const { id, name, email, faculty } = existStudent[0];
+      const { id, name, email, faculty } = student;
       const token = await jwt.sign({ id }, process.env.SECRET, {
         expiresIn: "3d",
       });
-      res.status(200).json({ id, name, email, faculty, token });
-    } else if (existInstructor) {
-      if (!(await bcrypt.compare(password, existInstructor[0].password))) {
+      return res
+        .status(200)
+        .json({ role: "student", id, name, email, faculty, token });
+    }
+
+    if (existInstructor.length) {
+      const instructor = existInstructor[0];
+      const isMatch = await bcrypt.compare(password, instructor.password);
+      if (!isMatch) {
         throw new Error("Incorrect password");
       }
-      const { id, name, email, faculty } = existInstructor[0];
+      const { id, name, email, faculty } = instructor;
       const token = await jwt.sign({ id }, process.env.SECRET, {
         expiresIn: "3d",
       });
-      res.status(200).json({ id, name, email, faculty, token });
+      return res
+        .status(200)
+        .json({ role: "instructor", id, name, email, faculty, token });
     }
   } catch (error) {
     res.status(400).json({ error: error.message });

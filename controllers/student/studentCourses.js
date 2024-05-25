@@ -18,7 +18,7 @@ const getCourse = async (req, res) => {
 const getCourses = async (req, res) => {
   try {
     const userid = req.user;
-    const query = `select * from takes where student_id = ?`;
+    const query = `select t.*, c.*, i.name as "instructor name" from takes t left join course c on c.id = t.course_id left join instructor i on t.instructor_id = i.id where student_id = ?`;
     const [courses] = await connection.query(query, [userid]);
     res.status(200).json(courses);
   } catch (error) {
