@@ -107,7 +107,7 @@ const getCourseDetails = async (req, res) => {
       instructorId,
     ]);
 
-    const query4 = `SELECT student_id FROM takes WHERE course_id = ? AND instructor_id = ?`;
+    const query4 = `SELECT s.id, s.name, s.email, s.faculty FROM takes t JOIN student s ON t.student_id = s.id WHERE course_id = ? AND instructor_id = ?`;
     const [students] = await connection.query(query4, [courseId, instructorId]);
 
     const query5 = `SELECT * FROM course WHERE id = ?`;

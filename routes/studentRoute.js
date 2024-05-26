@@ -15,6 +15,10 @@ const {
   AllCoursesDetails,
   getCourseDetails,
 } = require("../controllers/student/AllCourseDetails");
+const {
+  getAllAnnouncements,
+} = require("../controllers/student/studentAnnouncements");
+
 const multer = require("multer");
 
 var uploader = multer({
@@ -33,6 +37,8 @@ router.delete("/courses/:id", dropCourse);
 
 router.get("/getAssignments/:courseId", getAssginments);
 router.get("/allAssignments/", getAllAssignments);
+router.get("/announcements/", getAllAnnouncements);
+
 router.post(
   "/submitAssignment/:courseId/:assignmentId",
   uploader.single("file"),
