@@ -32,6 +32,11 @@ const uploadAssignmentFile = async (req, res) => {
     if (result1.length === 0) {
       throw new Error("No assignment exists with this id");
     }
+    const query4 = `SELECT instructor_id FROM assignments WHERE id = ?`;
+    const [result4] = await connection.query(query4, assignmentId);
+    if (result4[0].instructor_id !== instructor_id) {
+      throw new Error("No assignment exists");
+    }
     const upload = await uploadFile(req.file.path);
     const query = `INSERT INTO assignment_files (id, path, assignment_id) VALUES (?, ?, ?)`;
     const values = [upload.public_id, upload.url, assignmentId];
@@ -46,6 +51,12 @@ const getAssignments = async (req, res) => {
   try {
     const { courseId } = req.params;
     const instructor_id = req.user;
+    const query1 = `SELECT * FROM teaches WHERE course_id = ? AND instructor_id = ?`;
+    const values1 = [courseId, instructor_id];
+    const [result1] = await connection.query(query1, values1);
+    if (result1.length === 0) {
+      throw new Error("You are not teaching this course");
+    }
     const query = `SELECT * FROM assignments WHERE course_id = ? AND instructor_id = ?`;
     const [result] = await connection.query(query, [courseId, instructor_id]);
     const query2 = `SELECT * FROM assignment_files WHERE assignment_id = ?`;

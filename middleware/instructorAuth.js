@@ -9,7 +9,7 @@ const instructorAuth = async (req, res, next) => {
     const token = authorization.split(" ")[1];
     const { id } = jwt.verify(token, process.env.SECRET);
     const query = `select * from instructor where id = ?`;
-    const [user] = await connection.query(query, [id[0].id]);
+    const [user] = await connection.query(query, [id]);
     if (user.length === 0) {
       throw new Error("Request is not authorized");
     }

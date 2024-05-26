@@ -17,6 +17,9 @@ const {
   getWeeks,
   createWeek,
   addWeekFile,
+  CreateWeek,
+  uploadWeekFile,
+  deleteWeek,
 } = require("../controllers/instructor/instructorWeeks");
 const {
   getAnnouncements,
@@ -24,6 +27,9 @@ const {
 } = require("../controllers/instructor/instructorAnnouncements");
 
 const multer = require("multer");
+const {
+  AllCoursesDetails,
+} = require("../controllers/instructor/AllCoursesDetails");
 
 var uploader = multer({
   storage: multer.diskStorage({}),
@@ -34,6 +40,8 @@ const router = express.Router();
 
 router.get("/AllStudents", getAllStudents);
 
+router.get("/AllCoursesDetails", AllCoursesDetails);
+
 router.get("/courses", getCourses);
 router.post("/courses", teachCourse);
 router.post("/courses/Assign_student", assignStudentToCourse);
@@ -42,9 +50,14 @@ router.post("/courses/Assign_student", assignStudentToCourse);
 router.get("/announcements/:id", getAnnouncements);
 router.post("/announcements/:id", createAnnouncement);
 
-router.get("/weeks/:id", getWeeks);
-router.post("/weeks/:id", createWeek);
-router.post("/weeks/:id/files", addWeekFile);
+router.get("/getWeeks/:courseId", getWeeks);
+router.post("/createNewWeek/:courseId", CreateWeek);
+router.delete("/deleteWeek/:weekId", deleteWeek);
+router.post(
+  "/uploadWeekFile/:courseId/:weekId",
+  uploader.single("file"),
+  uploadWeekFile
+);
 
 router.get("/getAssignments/:courseId", getAssignments);
 router.post("/createAssignment/:courseId", CreateAssignment);
@@ -55,3 +68,11 @@ router.post(
   uploadAssignmentFile
 );
 module.exports = router;
+
+// router.get("/weeks/:id", getWeeks);
+// router.post("/weeks/:id", createWeek);
+// router.post(
+//   "/uploadWeekFile/:courseId",
+//   uploader.single("file"),
+//   uploadWeekFile
+// );

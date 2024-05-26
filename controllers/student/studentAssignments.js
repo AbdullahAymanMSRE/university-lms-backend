@@ -4,6 +4,25 @@ const {
   getFile,
   deleteFile,
 } = require("../../services/cloudinary");
+
+const getAss = async (instructor_id, courseId) => {
+  const query = `SELECT * FROM assignments WHERE course_id = ? AND instructor_id = ?`;
+  const [result] = await connection.query(query, [courseId, instructor_id]);
+  const query2 = `SELECT * FROM assignment_files WHERE assignment_id = ?`;
+  const result2 = [];
+  for (let i = 0; i < result.length; i++) {
+    const [files] = await connection.query(query2, [result[i].id]);
+    // const file = await getFile(files.path);
+    // result.file = file;
+    result2.push(files);
+  }
+  const result3 = [];
+  for (let i = 0; i < result.length; i++) {
+    result3.push({ ...result[i], files: result2[i] });
+  }
+  return result3;
+};
+
 const getAssginments = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -16,20 +35,21 @@ const getAssginments = async (req, res) => {
     const query4 = `SELECT instructor_id FROM takes WHERE course_id = ?`;
     const [result4] = await connection.query(query4, [courseId]);
     const instructor_id = result4[0].instructor_id;
-    const query = `SELECT * FROM assignments WHERE course_id = ? AND instructor_id = ?`;
-    const [result] = await connection.query(query, [courseId, instructor_id]);
-    const query2 = `SELECT * FROM assignment_files WHERE assignment_id = ?`;
-    const result2 = [];
-    for (let i = 0; i < result.length; i++) {
-      const [files] = await connection.query(query2, [result[i].id]);
-      const file = await getFile(files.path);
-      result.file = file;
-      result2.push(files);
-    }
-    const result3 = [];
-    for (let i = 0; i < result.length; i++) {
-      result3.push({ ...result[i], files: result2[i] });
-    }
+    // const query = `SELECT * FROM assignments WHERE course_id = ? AND instructor_id = ?`;
+    // const [result] = await connection.query(query, [courseId, instructor_id]);
+    // const query2 = `SELECT * FROM assignment_files WHERE assignment_id = ?`;
+    // const result2 = [];
+    // for (let i = 0; i < result.length; i++) {
+    //   const [files] = await connection.query(query2, [result[i].id]);
+    //   const file = await getFile(files.path);
+    //   result.file = file;
+    //   result2.push(files);
+    // }
+    // const result3 = [];
+    // for (let i = 0; i < result.length; i++) {
+    //   result3.push({ ...result[i], files: result2[i] });
+    // }
+    const result3 = await getAss(instructor_id, courseId);
     res.status(200).json({ success: true, data: result3 });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -51,44 +71,18 @@ const getAllAssignments = async (req, res) => {
     const [courses] = await connection.query(courseQuery, [studentId]);
 
     // Initialize an array to hold the courses with their assignments
-    const coursesWithAssignments = [];
-
+    let coursesWithAssignments = [];
+    console.log(courses);
     // Loop through each course to fetch its assignments
     for (const course of courses) {
-      const courseId = course.course_id;
-      const instructorId = course.instructor_id;
-
-      // Fetch all assignments for the course
-      const assignmentQuery = `
-        SELECT a.*, af.path as file_path
-        FROM assignments a
-        LEFT JOIN assignment_files af ON a.id = af.assignment_id
-        WHERE a.course_id = ? AND a.instructor_id = ?`;
-      const [assignments] = await connection.query(assignmentQuery, [
-        courseId,
-        instructorId,
-      ]);
-
-      // Group assignments by week
-      const assignmentsByWeek = assignments.reduce((acc, assignment) => {
-        const week = assignment.week || "No Week Specified";
-        if (!acc[week]) {
-          acc[week] = [];
-        }
-        acc[week].push({
-          id: assignment.id,
-          title: assignment.title,
-          description: assignment.description,
-          due_date: assignment.due_date,
-          file_path: assignment.file_path,
-        });
-        return acc;
-      }, {});
-
-      // Add the course and its assignments to the result array
+      const query4 = `SELECT instructor_id FROM takes WHERE course_id = ?`;
+      const [result4] = await connection.query(query4, [course.course_id]);
+      const instructor_id = result4[0].instructor_id;
+      const assignments = await getAss(instructor_id, course.course_id);
+      console.log(assignments, instructor_id, course.course_id);
       coursesWithAssignments.push({
         ...course,
-        weeks: assignmentsByWeek,
+        assignments: assignments,
       });
     }
 

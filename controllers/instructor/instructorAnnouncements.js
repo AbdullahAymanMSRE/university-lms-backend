@@ -4,6 +4,12 @@ const getAnnouncements = async (req, res) => {
   try {
     const instructorId = req.user;
     const courseId = req.params.id;
+    const query1 = `SELECT * FROM teaches WHERE course_id = ? AND instructor_id = ?`;
+    const values1 = [courseId, instructorId];
+    const [result1] = await connection.query(query1, values1);
+    if (result1.length === 0) {
+      throw new Error("You are not teaching this course");
+    }
     const query = `SELECT * FROM announcements WHERE course_id = ? AND instructor_id = ?`;
     const [announcements] = await connection.query(query, [
       courseId,

@@ -12,8 +12,13 @@ const {
   submitAssignment,
 } = require("../controllers/student/studentAssignments");
 const { getWeeks, getWeek } = require("../controllers/student/studentWeeks");
+const {
+  AllCoursesDetails,
+} = require("../controllers/student/AllCourseDetails");
 
 const router = express.Router();
+
+router.get("/AllCoursesDetails", AllCoursesDetails);
 
 router.get("/courses", getCourses);
 // router.post("/courses/:id", registerCourse);
