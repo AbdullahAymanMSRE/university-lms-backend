@@ -12,6 +12,7 @@ const {
   CreateAssignment,
   uploadAssignmentFile,
   deleteAssignment,
+  getSubmissions,
 } = require("../controllers/instructor/instructorAssignments");
 const {
   getWeeks,
@@ -29,6 +30,7 @@ const {
 const multer = require("multer");
 const {
   AllCoursesDetails,
+  getCourseDetails,
 } = require("../controllers/instructor/AllCoursesDetails");
 
 var uploader = multer({
@@ -41,6 +43,7 @@ const router = express.Router();
 router.get("/AllStudents", getAllStudents);
 
 router.get("/AllCoursesDetails", AllCoursesDetails);
+router.get("/getCourseDetails/:id", getCourseDetails);
 
 router.get("/courses", getCourses);
 router.post("/courses", teachCourse);
@@ -67,6 +70,8 @@ router.post(
   uploader.single("file"),
   uploadAssignmentFile
 );
+router.get("/AllSubmissions/:assignmentId", getSubmissions);
+// router.post("/gradeAssignment/:assignmentId", gradeAssignment);
 module.exports = router;
 
 // router.get("/weeks/:id", getWeeks);

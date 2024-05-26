@@ -13,11 +13,19 @@ const {
 } = require("../controllers/student/studentAssignments");
 const {
   AllCoursesDetails,
+  getCourseDetails,
 } = require("../controllers/student/AllCourseDetails");
+const multer = require("multer");
+
+var uploader = multer({
+  storage: multer.diskStorage({}),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
 
 const router = express.Router();
 
 router.get("/AllCoursesDetails", AllCoursesDetails);
+router.get("/getCourseDetails/:id", getCourseDetails);
 
 router.get("/courses", getCourses);
 // router.post("/courses/:id", registerCourse);
@@ -25,7 +33,11 @@ router.delete("/courses/:id", dropCourse);
 
 router.get("/getAssignments/:courseId", getAssginments);
 router.get("/allAssignments/", getAllAssignments);
-router.post("/submitAssignment/:courseId/:assignmentId", submitAssignment);
+router.post(
+  "/submitAssignment/:courseId/:assignmentId",
+  uploader.single("file"),
+  submitAssignment
+);
 
 router.get("/weeks/:id", getCourse);
 

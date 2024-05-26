@@ -49,7 +49,20 @@ const getAssginments = async (req, res) => {
     // for (let i = 0; i < result.length; i++) {
     //   result3.push({ ...result[i], files: result2[i] });
     // }
+
+    // get also the assignment_submission for the student
     const result3 = await getAss(instructor_id, courseId);
+    for (let i = 0; i < result3.length; i++) {
+      const query6 = `SELECT * FROM assignment_submission WHERE student_id = ? AND assignment_id = ?`;
+      const [result6] = await connection.query(query6, [
+        studentId,
+        result3[0].id,
+      ]);
+      if (result6.length > 0) {
+        result3[i].submission = result6[0];
+      }
+    }
+
     res.status(200).json({ success: true, data: result3 });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -79,7 +92,16 @@ const getAllAssignments = async (req, res) => {
       const [result4] = await connection.query(query4, [course.course_id]);
       const instructor_id = result4[0].instructor_id;
       const assignments = await getAss(instructor_id, course.course_id);
-      console.log(assignments, instructor_id, course.course_id);
+      for (let i = 0; i < assignments.length; i++) {
+        const query6 = `SELECT * FROM assignment_submission WHERE student_id = ? AND assignment_id = ?`;
+        const [result6] = await connection.query(query6, [
+          studentId,
+          assignments[0].id,
+        ]);
+        if (result6.length > 0) {
+          assignments[i].submission = result6[0];
+        }
+      }
       coursesWithAssignments.push({
         ...course,
         assignments: assignments,
@@ -92,6 +114,40 @@ const getAllAssignments = async (req, res) => {
   }
 };
 
-const submitAssignment = async (req, res) => {};
+const submitAssignment = async (req, res) => {
+  try {
+    const { courseId, assignmentId } = req.params;
+    const studentId = req.user;
+    const query = `SELECT * FROM takes WHERE course_id = ? AND student_id = ?`;
+    const [result] = await connection.query(query, [courseId, studentId]);
+    if (result.length === 0) {
+      throw new Error("Not registered for course");
+    }
+    const query2 = `SELECT * FROM assignments WHERE id = ?`;
+    const [result2] = await connection.query(query2, [assignmentId]);
+    if (result2.length === 0) {
+      throw new Error("Assignment not found");
+    }
+    // check if assignment is already submitted
+    const query6 = `SELECT * FROM assignment_submission WHERE assignment_id = ? AND student_id = ?`;
+    const [result6] = await connection.query(query6, [assignmentId, studentId]);
+    if (result6.length > 0) {
+      throw new Error("Assignment already submitted");
+    }
+    const upload = await uploadFile(req.file.path);
+    const query3 = `INSERT INTO assignment_submission (id, file_path, submission_date, assignment_id, student_id)
+     VALUES (?, ?, ?, ?, ?)`;
+    const [result3] = await connection.query(query3, [
+      upload.public_id,
+      upload.url,
+      new Date(),
+      assignmentId,
+      studentId,
+    ]);
+    res.status(200).json({ success: true, data: result3 });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
 module.exports = { getAssginments, submitAssignment, getAllAssignments };

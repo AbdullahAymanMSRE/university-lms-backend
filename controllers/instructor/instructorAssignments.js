@@ -100,9 +100,30 @@ const deleteAssignment = async (req, res) => {
   }
 };
 
+const getSubmissions = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const instructor_id = req.user;
+    const query1 = `SELECT * FROM assignments WHERE id = ? AND instructor_id = ?`;
+    const [result1] = await connection.query(query1, [
+      assignmentId,
+      instructor_id,
+    ]);
+    if (result1.length === 0) {
+      throw new Error("No assignment exists with this id");
+    }
+    const query = `SELECT * FROM assignment_submission WHERE assignment_id = ?`;
+    const [result] = await connection.query(query, [assignmentId]);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getAssignments,
   CreateAssignment,
   uploadAssignmentFile,
   deleteAssignment,
+  getSubmissions,
 };
