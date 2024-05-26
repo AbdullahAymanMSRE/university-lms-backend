@@ -11,7 +11,6 @@ const {
   getAllAssignments,
   submitAssignment,
 } = require("../controllers/student/studentAssignments");
-const { getWeeks, getWeek } = require("../controllers/student/studentWeeks");
 const {
   AllCoursesDetails,
 } = require("../controllers/student/AllCourseDetails");
@@ -24,15 +23,12 @@ router.get("/courses", getCourses);
 // router.post("/courses/:id", registerCourse);
 router.delete("/courses/:id", dropCourse);
 
-router.get("/weeks/:id", getCourse);
-
 router.get("/getAssignments/:courseId", getAssginments);
 router.get("/allAssignments/", getAllAssignments);
-router.post("/assignments/:courseId", submitAssignment);
+router.post("/submitAssignment/:courseId/:assignmentId", submitAssignment);
+
+router.get("/weeks/:id", getCourse);
 
 router.get("/announcements/:id", getAnnouncements);
-
-router.get("/weeks/:id", getWeeks);
-router.get("/weeks/:course_id/:week_id", getWeek);
 
 module.exports = router;

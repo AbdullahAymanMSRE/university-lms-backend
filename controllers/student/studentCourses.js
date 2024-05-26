@@ -4,6 +4,11 @@ const getCourse = async (req, res) => {
   try {
     // get all the content from the week table where course_id = req.param
     const { id } = req.params;
+    const query1 = `SELECT * FROM takes WHERE course_id = ? AND student_id = ?`;
+    const [instructor] = await connection.query(query1, [id, req.user]);
+    if (instructor.length === 0) {
+      throw new Error("No such course");
+    }
     const query = `select * from weeks where course_id = ?`;
     const [course] = await connection.query(query, [id]);
     if (course.length === 0) {
@@ -70,9 +75,8 @@ const dropCourse = async (req, res) => {
 const getAnnouncements = async (req, res) => {
   try {
     const courseId = req.params.id;
-    // get the instructor_id from the takes table
-    const query1 = `SELECT * FROM takes WHERE course_id = ?`;
-    const [instructor] = await connection.query(query1, [courseId]);
+    const query1 = `SELECT * FROM takes WHERE course_id = ? AND student_id = ?`;
+    const [instructor] = await connection.query(query1, [courseId, req.user]);
     if (instructor.length === 0) {
       throw new Error("No such course");
     }
