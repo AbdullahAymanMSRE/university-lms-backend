@@ -181,10 +181,30 @@ const assignStudentToCourse = async (req, res) => {
 //   }
 // };
 
+const deleteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userid = req.user;
+    let query = `select * from teaches where instructor_id = ? and course_id = ?`;
+    const [teaches] = await connection.query(query, [userid, id]);
+    if (teaches.length === 0) {
+      return res.status(404).json({ error: "You do not teach this course" });
+    }
+    query = `delete from takes where course_id = ? AND instructor_id = ?`;
+    await connection.query(query, [id, userid]);
+    query = `delete from teaches where instructor_id = ? and course_id = ?`;
+    await connection.query(query, [userid, id]);
+    res.status(200).json({ message: "Course dropped" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getCourses,
   teachCourse,
   // leaveCourse,
   getAllStudents,
   assignStudentToCourse,
+  deleteCourse,
 };
