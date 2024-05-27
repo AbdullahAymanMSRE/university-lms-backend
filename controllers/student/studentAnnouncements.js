@@ -9,11 +9,10 @@ const getAllAnnouncements = async (req, res) => {
       SELECT a.*, c.title as course_title, i.name as instructor_name
       FROM announcements a
       JOIN course c ON a.course_id = c.id
-      JOIN teaches t ON t.course_id = c.id
-      JOIN instructor i ON i.id = t.instructor_id
+      JOIN instructor i ON i.id = a.instructor_id
       WHERE a.course_id IN (
-        SELECT t.course_id
-        FROM takes t
+        SELECT course_id
+        FROM takes 
         WHERE student_id = ?
       )
       ORDER BY a.announcement_date ASC
