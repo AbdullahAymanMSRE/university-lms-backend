@@ -35,7 +35,7 @@ const signup = async (req, res) => {
       const query = `INSERT INTO student
                        (name, email, faculty, password) VALUES
                       (?, ?, ?, ?)`;
-      connection.query(query, [name, email, faculty, hash]);
+      await connection.query(query, [name, email, faculty, hash]);
       const [id] = await connection.query(
         "SELECT id FROM student WHERE email = ?",
         [email]
@@ -58,7 +58,7 @@ const signup = async (req, res) => {
       const query = `INSERT INTO instructor
                        (name, email, faculty, password) VALUES
                       (?, ?, ?, ?)`;
-      connection.query(query, [name, email, faculty, hash]);
+      await connection.query(query, [name, email, faculty, hash]);
       const [id] = await connection.query(
         "SELECT id FROM instructor WHERE email = ?",
         [email]
